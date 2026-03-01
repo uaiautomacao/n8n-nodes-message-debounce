@@ -1,0 +1,27 @@
+# Dependências
+node_modules/
+
+# Build output — não vai pro GitHub, mas vai pro npm
+dist/
+
+# Logs e caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.eslintcache
+
+# Pacotes gerados localmente para teste
+*.tgz
+
+# Variáveis de ambiente e segredos
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+*.sw?
+.DS_Store
+Thumbs.db
