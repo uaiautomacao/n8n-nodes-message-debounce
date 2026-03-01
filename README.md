@@ -5,137 +5,122 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/n8n-nodes-message-debounce"><img src="https://img.shields.io/npm/v/n8n-nodes-message-debounce.svg" alt="npm version"/></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/></a>
-  <a href="https://uaiautomacao.com"><img src="https://img.shields.io/badge/by-U.ai%20Automa%C3%A7%C3%A3o-blue" alt="by U.ai Automação"/></a>
+  <img src="https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png" alt="n8n community node" />
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/n8n-nodes-message-debounce"><img src="https://img.shields.io/npm/v/n8n-nodes-message-debounce.svg?style=flat-square" alt="npm version"/></a>
+  <a href="https://www.npmjs.com/package/n8n-nodes-message-debounce"><img src="https://img.shields.io/npm/dm/n8n-nodes-message-debounce.svg?style=flat-square" alt="npm downloads"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT"/></a>
+  <a href="https://uaiautomacao.com"><img src="https://img.shields.io/badge/by-U.ai%20Automa%C3%A7%C3%A3o-blue?style=flat-square" alt="by U.ai Automação"/></a>
+</p>
+
+<p align="center">
+  Read this in: 
+  <a href="README.pt-BR.md"><img src="https://flagcdn.com/20x15/br.png" alt="Português do Brasil"> Português (BR)</a> | 
+  <a href="README.es-ES.md"><img src="https://flagcdn.com/20x15/es.png" alt="Español"> Español</a>
 </p>
 
 ---
 
 An n8n community node that groups multiple inputs within a time window before continuing the flow — preventing your automation from reacting to every single message before the user finishes writing.
 
-> **Real-world use case:** A user sends "hi", then "how are you", then "I need help with my order". Without debounce, your flow fires three times. With this node, it waits for silence and processes everything as one consolidated message.
+> **Real-world use case:** A user sends "Hi", then "How are you?", then "I need help with my order". Without debounce, your flow fires three times unnecessarily. With this node, it waits for silence and processes everything as one consolidated message.
+
+## ✅ Why use this node?
+
+- **Native performance:** Zero external npm dependencies. Built with pure Node.js sockets (`net` / `tls`) and pure RESP2 protocol.
+- **Race-condition safe:** Uses atomic Lua scripts in Redis to guarantee execution safety, even in high-throughput environments.
+- **Queue Mode ready:** Fully compatible with n8n worker instances. Just point to the same Redis instance your n8n uses.
 
 ---
 
-## How it works
+## 🛠 Installation
+
+Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
+
+---
+
+## ⚙️ How it works
 
 Every time a message arrives, the node:
-
-1. Stores the message in Redis under the session's key
-2. Waits for the configured debounce window
-3. After the wait, checks if any new message arrived during that time
-4. If no new messages arrived → flushes everything as a single output
-5. If a new message arrived → silently stops (the newer execution will take over)
+1. Stores the message in Redis under the session's key.
+2. Waits for the configured *Debounce Window*.
+3. After the wait, checks if any new message arrived during that time.
+4. If **no new messages** arrived → flushes everything as a single output.
+5. If **a new message** arrived → silently stops (the newer execution will take over and flush later).
 
 When the node is still waiting, **it emits nothing** — the flow simply stops there. No need for IF nodes or filters after it.
 
 ---
 
-## Installation
+## 📝 Configuration
 
-In your n8n instance, go to **Settings → Community Nodes** and install:
-
-```
-n8n-nodes-message-debounce
-```
-
-> **Requirement:** A Redis instance must be accessible from your n8n environment. In production (queue mode), Redis is already required by n8n — so no extra setup needed.
-
----
-
-## Configuration
-
-### Required fields
+### Required Fields
 
 | Field | Description |
 |---|---|
 | **Redis Credential** | Your Redis connection configured in n8n credentials |
-| **Session ID** | Unique identifier for the conversation or session (e.g. chat ID, user ID) |
-| **Message** | The content of the incoming message |
-| **Debounce Window** | Seconds to wait for silence before flushing (e.g. `10`) |
+| **Session ID** | Unique identifier for the conversation (e.g., chat ID, user ID, or phone number) |
+| **Message** | The incoming text to be buffered |
+| **Debounce Window** | Seconds to wait for silence before flushing the messages out (e.g. `10`) |
 
-### Options
+### Optional Settings
 
-| Option | Description | Default |
+| Setting | Description | Default |
 |---|---|---|
-| **Max Messages** | Force flush after N messages, regardless of the timer | — |
-| **Max Wait Time** | Maximum total seconds before forcing flush, even if messages keep arriving | — |
-| **Flush Keywords** | List of words that trigger an immediate flush when detected in the message | — |
-| **On Duplicate Message** | What to do when the same message arrives twice: `ignore`, `include`, or `flush` | `include` |
-| **First Message Behavior** | Special behavior for the first message of a new session: `immediate` flush or `customWindow` with a shorter timer | — |
-| **Session TTL** | Seconds of inactivity before a session is considered expired (child of First Message Behavior). Set to `never` to keep sessions permanently. | — |
-| **Separator** | String used to join multiple messages | `\n` |
+| **First Message Behavior** | Special behavior for the first message of a new session: `Immediate` flush or a `Custom Window`. | `None` |
+| **Session TTL** | Inactivity time before a session is erased from Redis to save memory. *(Available if a First Message Behavior is set)*. | `24 Hours` |
+| **Max Messages** | Force an immediate flush after N messages, regardless of the silence timer. | `0` (Disabled) |
+| **Max Wait Time** | Maximum total seconds before forcing a flush, even if messages keep arriving without silence. | `0` (Disabled) |
+| **Flush Keywords** | List of words divided by `;` that trigger an immediate flush when detected in the message. | — |
+| **On Duplicate Message** | What to do when the exact same message arrives twice in a row: `Ignore`, `Include`, or `Flush` immediately. | `Include` |
+| **Separator** | The string used to join multiple messages together when flushing. | `\n` |
 
-> ⚠️ **Memory warning:** If Session TTL is set to `never expire`, sessions will accumulate in Redis indefinitely. Monitor your Redis memory usage.
-
-> 💡 **Max Messages + Max Wait Time:** If both are set, whichever condition is met first triggers the flush.
+> 💡 **Pro Tip:** If both `Max Messages` and `Max Wait Time` are set, whichever condition is met first will trigger the flush.
 
 ---
 
-## Output
+## 📩 Output
 
-When the debounce fires, the node outputs a single item:
+When the debounce fires, the node outputs a single cleanly structured item:
 
 ```json
 {
-  "fullMessage": "hi\nhow are you\nI need help with my order",
+  "fullMessage": "Hi\nHow are you?\nI need help with my order",
   "messageCount": 3,
   "flushReason": "debounceWindow"
 }
 ```
 
-### flushReason values
+### Flush Reasons:
 
-| Value | Meaning |
-|---|---|
-| `debounceWindow` | Silence window elapsed normally |
-| `maxMessages` | Max message count reached |
-| `maxWaitTime` | Max wait time reached |
-| `keyword` | A flush keyword was detected |
-| `firstMessage` | First message of a new session with immediate flush configured |
-| `duplicate` | Duplicate message triggered flush |
+- `debounceWindow` — standard silence window elapsed.
+- `firstMessage` — triggered by the First Message Behavior logic.
+- `maxMessages` — maximum message count threshold reached.
+- `maxWaitTime` — maximum wait time threshold reached.
+- `keyword` — a flush keyword was detected in the payload.
+- `duplicate` — a duplicate message triggered the flush.
 
 ---
 
-## Example flow
+## 🧑‍💻 Example Flow
 
-```
-Webhook → [your processing nodes] → Message Debounce → AI Agent
+```text
+Webhook → [Extract Context] → Message Debounce → AI Agent / Switch Node
 ```
 
-The node fits anywhere in your flow. Process audio transcriptions, extract documents, enrich data — then pass everything into the debounce node. It handles the rest.
+The node fits anywhere in your flow. Process audio transcriptions, extract documents, format data — then pass everything into the debounce node. It handles the waiting game for you.
 
 ---
 
-## Error handling
+## 🤝 Supported by U.ai Automação
 
-The node throws explicit errors in the following situations:
+Crafted with care by the team at **[U.ai Automação](https://uaiautomacao.com)** — Building robust automation solutions for real-world workflows.
 
-- **`Debounce Window is required`** — field left empty
-- **`Session ID is required`** — field left empty
-- **`Message is required`** — field left empty
-- **`Redis connection failed: <detail>`** — could not connect to Redis
-- **`Redis operation failed: <detail>`** — an operation failed during execution
-
-Errors are always explicit and descriptive — never silent.
-
----
-
-## Technical notes
-
-- All Redis operations use atomic Lua scripts to prevent race conditions in high-concurrency scenarios
-- Messages are tracked by unique ID, not by content — so duplicate messages are handled correctly
-- When suppressed (not the last message), the node emits **no items** and the flow stops cleanly
-
----
-
-## About
-
-Built by **[U.ai Automação](https://uaiautomacao.com)** — automation solutions for real-world workflows.
-
----
-
-## License
+## 📄 License
 
 [MIT](LICENSE)
+
+[n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
+
