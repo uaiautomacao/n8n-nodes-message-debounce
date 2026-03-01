@@ -13,6 +13,7 @@ export const description: INodeTypeDescription = {
     icon: 'file:messageDebounce.svg',
     group: ['transform'],
     version: 1,
+    subtitle: '={{$parameter["sessionId"]}}',
     description:
         'Groups messages from the same session within a silence window and emits a single consolidated output. Silently stops when a newer message has already arrived.',
     defaults: {
@@ -133,11 +134,6 @@ export const description: INodeTypeDescription = {
                 {
                     name: 'Days',
                     value: 'days',
-                },
-                {
-                    name: 'Never Expire',
-                    value: 'never',
-                    description: 'Sessions stay in Redis indefinitely',
                 },
             ],
         },

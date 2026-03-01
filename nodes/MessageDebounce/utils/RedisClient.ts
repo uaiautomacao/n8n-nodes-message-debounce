@@ -199,6 +199,10 @@ export class RedisClient {
         return (await this.send(['EXPIRE', key, seconds])) as number;
     }
 
+    async persist(key: string): Promise<number> {
+        return (await this.send(['PERSIST', key])) as number;
+    }
+
     /**
      * SET with optional NX and EX flags.
      * Returns 'OK' on success, null if NX condition was not met.

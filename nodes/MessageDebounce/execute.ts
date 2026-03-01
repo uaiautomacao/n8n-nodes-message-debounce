@@ -76,6 +76,8 @@ export async function runDebounce(
             const ttlSec = toTtlSeconds(opts.sessionTtlValue, opts.sessionTtlUnit);
             if (ttlSec > 0) {
                 await redis.expire(sessionKey, ttlSec);
+            } else {
+                await redis.persist(sessionKey);
             }
             await redis.rpush(msgKey, JSON.stringify(entry));
         } catch (err) {
@@ -159,6 +161,10 @@ export async function runDebounce(
             await redis.expire(msgKey, ttlSec);
             await redis.expire(tsKey, ttlSec);
             await redis.expire(sessionKey, ttlSec);
+        } else {
+            await redis.persist(msgKey);
+            await redis.persist(tsKey);
+            await redis.persist(sessionKey);
         }
     } catch (err) {
         throw wrapRedisError(err);

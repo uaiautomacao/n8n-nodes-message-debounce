@@ -6,6 +6,7 @@ import type {
     INodeProperties,
 } from 'n8n-workflow';
 
+// eslint-disable-next-line @n8n/community-nodes/credential-test-required
 export class RedisApi implements ICredentialType {
     name = 'redisApi';
 
@@ -15,13 +16,6 @@ export class RedisApi implements ICredentialType {
     documentationUrl = 'https://www.npmjs.com/package/n8n-nodes-message-debounce';
 
     properties: INodeProperties[] = [
-        {
-            displayName:
-                'Configure the fields below exactly as you would configure a standard Redis connection. The fields match the official Redis connection settings.',
-            name: 'notice',
-            type: 'notice',
-            default: '',
-        },
         {
             displayName: 'Host',
             name: 'host',
