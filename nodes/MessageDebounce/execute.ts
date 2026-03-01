@@ -13,10 +13,10 @@ import type { IDataObject, INodeExecutionData } from 'n8n-workflow';
 import { FLUSH_SCRIPT } from './constants';
 import { sleep, makeKeys, wrapRedisError, toTtlSeconds } from './helpers';
 import type { FlushReason, MessageEntry, DebounceOutput, ResolvedOptions } from './types';
-import type { RedisClient } from './utils/RedisClient';
 
 export async function runDebounce(
-    redis: RedisClient,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    redis: any,
     sessionId: string,
     message: string,
     debounceWindowSec: number,
@@ -147,7 +147,7 @@ export async function runDebounce(
 
     // Record start time only once per session (NX flag).
     try {
-        await redis.set(tsKey, String(Date.now()), { nx: true });
+        await redis.set(tsKey, String(Date.now()), 'NX');
     } catch (err) {
         throw wrapRedisError(err);
     }
@@ -156,7 +156,7 @@ export async function runDebounce(
     const ttlSec = toTtlSeconds(opts.sessionTtlValue, opts.sessionTtlUnit);
     try {
         // sessionKey: use SET NX so we don't overwrite an existing session marker
-        await redis.set(sessionKey, '1', { nx: true });
+        await redis.set(sessionKey, '1', 'NX');
         if (ttlSec > 0) {
             await redis.expire(msgKey, ttlSec);
             await redis.expire(tsKey, ttlSec);
@@ -220,7 +220,7 @@ export async function runDebounce(
     // -------------------------------------------------------------------------
     let luaResult: unknown;
     try {
-        luaResult = await redis.eval(FLUSH_SCRIPT, [msgKey, tsKey], [entry.id]);
+        luaResult = await redis.eval(FLUSH_SCRIPT, 2, msgKey, tsKey, entry.id);
     } catch (err) {
         throw wrapRedisError(err);
     }
