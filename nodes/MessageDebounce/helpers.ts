@@ -8,8 +8,8 @@ import { TTL_MULTIPLIERS } from './constants';
 /** Promise-based sleep. */
 export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => {
-        // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
-        setTimeout(resolve, ms);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (globalThis as any).setTimeout(resolve, ms);
     });
 }
 

@@ -23,9 +23,9 @@ export const description: INodeTypeDescription = {
     outputs: ['main'],
     credentials: [
         {
-            name: 'redisApi',
+            // eslint-disable-next-line n8n-nodes-base/node-class-description-credentials-name-unsuffixed
+            name: 'redis',
             required: true,
-            testedBy: 'redisConnectionTest',
         },
     ],
     properties: [

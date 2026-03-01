@@ -8,43 +8,17 @@ import {
     type INodeExecutionData,
     type INodeType,
     type IDataObject,
-    type ICredentialTestFunctions,
-    type ICredentialsDecrypted,
-    type INodeCredentialTestResult,
 } from 'n8n-workflow';
 
 import { description } from './MessageDebounce.description';
 import { runDebounce } from './execute';
 import type { ResolvedOptions } from './types';
-import { RedisClient } from './utils/RedisClient';
-import type { RedisCredentials } from './utils/RedisClient';
 
 // eslint-disable-next-line @n8n/community-nodes/icon-validation
 export class MessageDebounce implements INodeType {
     description = description;
 
     icon = 'file:messageDebounce.svg' as const;
-
-    methods = {
-        credentialTest: {
-            async redisConnectionTest(
-                this: ICredentialTestFunctions,
-                credential: ICredentialsDecrypted,
-            ): Promise<INodeCredentialTestResult> {
-                const redis = new RedisClient(credential.data as unknown as RedisCredentials);
-                try {
-                    await redis.connect();
-                    redis.disconnect();
-                    return { status: 'OK', message: 'Connection successful' };
-                } catch (err) {
-                    return {
-                        status: 'Error',
-                        message: err instanceof Error ? err.message : String(err),
-                    };
-                }
-            },
-        },
-    };
 
     async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
         const itemIndex = 0;
@@ -102,20 +76,11 @@ export class MessageDebounce implements INodeType {
         // ------------------------------------------------------------------
         // 3. Connect to Redis
         // ------------------------------------------------------------------
-        let credentials: RedisCredentials;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let redis: any;
         try {
-            credentials = (await this.getCredentials('redisApi')) as unknown as RedisCredentials;
-        } catch (err) {
-            throw new NodeOperationError(
-                this.getNode(),
-                `Redis credentials error: ${err instanceof Error ? err.message : String(err)}`,
-                { itemIndex },
-            );
-        }
-
-        const redis = new RedisClient(credentials);
-        try {
-            await redis.connect();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            redis = await (this.helpers as any).createRedisClient('redis');
         } catch (err) {
             throw new NodeOperationError(
                 this.getNode(),
@@ -130,7 +95,7 @@ export class MessageDebounce implements INodeType {
         try {
             return await runDebounce(redis, sessionId, message, debounceWindowSec, opts, itemIndex);
         } finally {
-            redis.disconnect();
+            redis.quit();
         }
     }
 }
