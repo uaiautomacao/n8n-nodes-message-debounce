@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-message-debounce",
-	"version": "0.1.25",
+	"version": "0.1.27",
 	"description": "n8n community node that groups messages from the same session within a time window, waiting for silence before passing them along as a single consolidated output.",
 	"license": "MIT",
 	"homepage": "https://github.com/uaiautomacao/n8n-nodes-message-debounce",
