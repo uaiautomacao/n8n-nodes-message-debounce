@@ -75,6 +75,7 @@ export const description: INodeTypeDescription = {
             displayName: 'First Message Behavior',
             name: 'firstMessageBehavior',
             type: 'options',
+            noDataExpression: true,
             default: 'none',
             description:
                 'Special handling for the very first message of a new or expired session',

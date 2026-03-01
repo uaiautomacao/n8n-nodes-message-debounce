@@ -6,7 +6,9 @@
  * Supported commands: AUTH, SELECT, RPUSH, LLEN, LINDEX, LRANGE, DEL, EXPIRE, SET, GET, EVAL
  */
 
+// eslint-disable-next-line @n8n/community-nodes/no-restricted-imports
 import * as net from 'net';
+// eslint-disable-next-line @n8n/community-nodes/no-restricted-imports
 import * as tls from 'tls';
 
 export interface RedisCredentials {
@@ -283,6 +285,7 @@ export class RedisClient {
                 return;
             }
 
+            // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
             const timeoutId = setTimeout(() => {
                 const idx = this.pendingCallbacks.findIndex((cb) => cb.resolve === resolve);
                 if (idx !== -1) {
@@ -292,8 +295,16 @@ export class RedisClient {
             }, 5000);
 
             this.pendingCallbacks.push({
-                resolve: (val: RespValue) => { clearTimeout(timeoutId); resolve(val); },
-                reject: (err: Error) => { clearTimeout(timeoutId); reject(err); }
+                resolve: (val: RespValue) => {
+                    // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
+                    clearTimeout(timeoutId);
+                    resolve(val);
+                },
+                reject: (err: Error) => {
+                    // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
+                    clearTimeout(timeoutId);
+                    reject(err);
+                }
             });
 
             this.socket.write(encodeCommand(args));

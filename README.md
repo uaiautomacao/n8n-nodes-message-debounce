@@ -1,8 +1,5 @@
 # n8n-nodes-message-debounce
 
-<p align="center">
-  <img src="https://uaiautomacao.com/logo.png" alt="U.ai Automação" width="200"/>
-</p>
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png" alt="n8n community node" />
@@ -110,7 +107,7 @@ When the debounce fires, the node outputs a single cleanly structured item:
 Webhook → [Extract Context] → Message Debounce → AI Agent / Switch Node
 ```
 
-The node fits anywhere in your flow. Process audio transcriptions, extract documents, format data — then pass everything into the debounce node. It handles the waiting game for you.
+This node makes your life easier by completely replacing the need for complex manual debounce workarounds (like using Wait nodes, extra databases, or sleep loops). It already features native, reliable logic—including dedicated First Message behaviors—to keep your workflows clean and responsive.
 
 ---
 
