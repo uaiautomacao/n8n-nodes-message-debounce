@@ -1,42 +1,58 @@
 # n8n-nodes-message-debounce
 
-
 <p align="center">
   <img src="https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png" alt="n8n community node" />
 </p>
 
-**Este archivo es la traducción al Español. [Ver el original en Inglés](README.md).**
+<p align="center">
+  <a href="https://www.npmjs.com/package/n8n-nodes-message-debounce"><img src="https://img.shields.io/npm/v/n8n-nodes-message-debounce.svg?style=flat-square" alt="npm version"/></a>
+  <a href="https://www.npmjs.com/package/n8n-nodes-message-debounce"><img src="https://img.shields.io/npm/dm/n8n-nodes-message-debounce.svg?style=flat-square" alt="npm downloads"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT"/></a>
+  <a href="https://uaiautomacao.com"><img src="https://img.shields.io/badge/by-U.ai%20Automa%C3%A7%C3%A3o-blue?style=flat-square" alt="by U.ai Automação"/></a>
+</p>
+
+<p align="center">
+  Léalo en: 
+  <a href="README.md"><img src="https://flagcdn.com/20x15/us.png" alt="English"> English</a> |
+  <a href="README.pt-BR.md"><img src="https://flagcdn.com/20x15/br.png" alt="Português do Brasil"> Português (BR)</a>
+</p>
 
 ---
 
-Un **nodo comunitario de n8n** que agrupa múltiples entradas dentro de una ventana de tiempo antes de continuar el flujo — evitando que tu automatización reaccione a cada mensaje aislado antes de que el usuario termine de escribir.
+Un `community node` de n8n que agrupa múltiples entradas dentro de una ventana de tiempo antes de continuar el `workflow`. Garantiza que las conversaciones resulten más naturales y fluidas al consolidar los mensajes fragmentados de los usuarios en un único payload coherente antes del procesamiento.
 
-> **Caso de Uso Real:** Un usuario envía "Hola", luego "¿Cómo estás?", y después "Necesito ayuda con mi pedido". Sin debounce (agrupamiento), tu flujo se dispara tres veces innecesariamente. Con este nodo, espera el silencio y procesa todo como un único mensaje consolidado.
+> **Caso de uso real:** Un usuario envía "Hola", "¿Qué tal?", y "Necesito ayuda con mi pedido" en rápida sucesión. En lugar de procesar cada mensaje de manera independiente, este `node` espera a que haya una breve pausa, agrupando el texto. Esto permite que el `workflow` responda al pensamiento completo, lo que genera una interacción más dinámica y natural.
 
-## ✅ ¿Por qué usar este nodo?
+## ✅ Principales Ventajas y Casos de Uso
 
-- **Rendimiento Nativo:** Cero dependencias NPM externas. Construido utilizando solo los sockets puros de Node.js (`net` / `tls`) y el protocolo nativo RESP2.
-- **Protección contra Condiciones de Carrera (Race-conditions):** Utiliza scripts Lua atómicos directamente en el servidor Redis para garantizar total seguridad de ejecución, incluso bajo tráfico severo.
-- **Listo para Queue Mode:** Totalmente compatible con instancias *worker* de n8n. Solo apunta al mismo Redis que tu n8n ya utiliza.
+- **Rendimiento nativo:** Cero dependencias npm externas. Construido con módulos socket nativos de Node.js (`net` / `tls`) y protocolo RESP2 puro.
+- **Prevención de `race conditions`:** Utiliza scripts Lua atómicos en Redis para garantizar la seguridad de la ejecución, incluso en entornos de gran volumen.
+
+**Características Avanzadas de Control:**
+- **`First Message Behavior`**: Especifique reglas diferentes para la primera interacción de una sesión. *Caso de uso:* Envíe un saludo automático inmediato al llegar el primer mensaje, mientras aplica la agrupación `debounce` a todos los mensajes posteriores.
+- **Max Messages**: Fuerza un `flush` inmediato al alcanzar una cantidad definida de mensajes, independientemente del temporizador de silencio. *Caso de uso:* Procese lotes de forma eficiente cuando un usuario pega un texto largo dividido en docenas de mensajes rápidos.
+- **Max Wait Time**: Define un límite estricto de tiempo total de espera antes de forzar un `flush`. *Caso de uso:* Asegura que el sistema termine respondiendo a un usuario que no para de escribir, manteniendo el nivel de participación.
+- **Flush Keywords**: Define palabras que al detectarse desencadenan un `flush` inmediato. *Caso de uso:* Evita la ventana de espera si el usuario escribe comandos prioritarios como "urgente", "detener" o "cancelar".
+- **On Duplicate**: Maneja de forma sistemática mensajes consecutivos idénticos (Ignorar, Incluir o realizar `flush`). *Caso de uso:* Ignore de forma segura envíos dobles accidentales de un bot o de un usuario apretando repetidas veces el mismo botón, evitando ejecuciones duplicadas.
 
 ---
 
 ## 🛠 Instalación
 
-Sigue la [guía de instalación](https://docs.n8n.io/integrations/community-nodes/installation/) en la documentación de nodos comunitarios de n8n.
+Siga la [guía de instalación](https://docs.n8n.io/integrations/community-nodes/installation/) en la documentación de n8n community nodes.
 
 ---
 
 ## ⚙️ Cómo funciona
 
-Cada vez que llega un mensaje, este nodo:
-1. Guarda el mensaje en Redis utilizando la clave de esa sesión.
-2. Espera la cantidad de tiempo configurada en la *Debounce Window*.
-3. Después del tiempo, comprueba si ha llegado algún otro mensaje en ese intervalo.
-4. Si **ningún mensaje** nuevo ha llegado → procesa (flush) todos los mensajes almacenados juntos como un solo texto.
-5. Si **un nuevo mensaje** ha llegado → el nodo se detiene silenciosamente (la ejecución más reciente tomará el control y hará el flush al final de su tiempo).
+Cada vez que llega un mensaje, el `node`:
+1. Almacena el mensaje en Redis bajo la clave de la sesión.
+2. Espera durante la ventana configurada de `debounce`.
+3. Tras la espera, comprueba si llegó algún mensaje nuevo en ese tiempo.
+4. Si **no han llegado nuevos mensajes** → ejecuta un `flush` agrupando todo en una única salida.
+5. Si **ha llegado un nuevo mensaje** → se detiene silenciosamente (la ejecución más reciente tomará el control y hará el `flush` más tarde).
 
-Mientras el nodo esté esperando el silencio, **no emite nada hacia adelante** — tu flujo simplemente se detiene ahí. No necesitas usar nodos IF o filtros después de él.
+Mientras el `node` se encuentra en estado de espera, **no emite nada** — el `workflow` simplemente se detiene ahí. No es necesario añadir nodes IF ni filtros a continuación.
 
 ---
 
@@ -46,67 +62,66 @@ Mientras el nodo esté esperando el silencio, **no emite nada hacia adelante** �
 
 | Campo | Descripción |
 |---|---|
-| **Redis Credential** | Tu conexión a Redis, configurada desde la pantalla de Credenciales de n8n. |
-| **Session ID** | Identificador único para esa conversación (ej: ID de Telegram, Número de WhatsApp, etc). |
-| **Message** | El texto del mensaje que está llegando. |
-| **Debounce Window** | Cantidad de segundos a esperar por silencio antes de procesar los ítems (ej: `10`). |
+| **Redis Credential** | Su conexión a Redis configurada en las credenciales de n8n |
+| **Session ID** | Identificador único de la conversación (p. ej., ID del chat, del usuario o su número de teléfono) |
+| **Message** | El texto entrante que se retendrá |
+| **Debounce Window** | Segundos a esperar en silencio antes de realizar un `flush` (p. ej., `10`) |
 
-### Configuraciones Opcionales
+### Opciones Adicionales
 
-| Campo | Descripción | Por defecto |
+| Ajuste | Descripción | Por defecto |
 |---|---|---|
-| **First Message Behavior** | Comportamiento especial para el 1er mensaje de una nueva sesión: Procesar al instante (`Immediate`) o esperar un tiempo menor (`Custom Window`). | `None` |
-| **Session TTL** | Tiempo de inactividad antes de que los datos de esta sesión se borren de Redis para ahorrar memoria *(Disponible al activar First Message Behavior).* | `24 Hours` |
-| **Max Messages** | Fuerza al nodo a procesar los mensajes tras recibir N mensajes, ignorando el temporizador de silencio. | `0` (Desactivado) |
-| **Max Wait Time** | Tiempo máximo (en seg.) para forzar el proceso, útil en caso de que el cliente no deje de enviar mensajes sin intervalo de silencio. | `0` (Desactivado) |
-| **Flush Keywords** | Lista de palabras divididas por `;` que fuerzan el fin del agrupamiento inmediatamente si se escriben en medio o al principio del mensaje. | — |
-| **On Duplicate Message** | Qué hacer cuando llega un mensaje idéntico al último de forma consecutiva: Ignorar (`Ignore`), Incluir (`Include`) o Procesar todo (`Flush`). | `Include` |
-| **Separator** | Separador (un Enter nativamente) usado para unir un mensaje debajo del otro a la hora de salida. | `\n` |
+| **`First Message Behavior`** | Comportamiento especial para el primer mensaje de una nueva sesión: un `flush` Inmediato o una Ventana Personalizada. | `None` |
+| **Session TTL** | Tiempo de inactividad antes de que la sesión se borre de Redis. *(Disponible si se configura un `First Message Behavior`)*. | `24 Hours` |
+| **Max Messages** | Fuerza el `flush` inmediato después de N mensajes, sin importar el temporizador de silencio. | `0` (Desactivado) |
+| **Max Wait Time** | Límite de tiempo máximo en segundos para forzar un `flush`, aunque sigan llegando mensajes continuamente. | `0` (Desactivado) |
+| **Flush Keywords** | Lista separada por `;` con las palabras que disparan un `flush` inmediato en cuanto se detectan dentro de un mensaje. | — |
+| **On Duplicate Message** | Acción a realizar cuando el mismo mensaje ingresa dos veces seguidas: Ignorar, Incluir o realizar `flush` inmediatamente. | `Include` |
+| **Separator** | La cadena de texto utilizada para separar y vincular múltiples mensajes durante el `flush`. | `\n` |
 
-> 💡 **Consejo PRO:** Si ambas opciones `Max Messages` y `Max Wait Time` están activas simultáneamente, la que ocurra primero forzará el flush de los mensajes.
+> 💡 **Consejo Profesional:** Si configura tanto `Max Messages` como `Max Wait Time`, la condición que se cumpla primero será la que desencadene el `flush`.
 
 ---
 
-## 📩 Salida (Output)
+## 📩 Salida
 
-Cuando el agrupamiento (debounce) se dispara, el nodo continúa la automatización devolviendo 1 único ítem formateado y enriquecido:
+Cuando se acciona el `debounce`, el `node` produce un único elemento claramente estructurado:
 
 ```json
 {
-  "fullMessage": "Hola\n¿Cómo estás?\nNecesito ayuda con mi pedido",
+  "fullMessage": "Hola\n¿Qué tal?\nNecesito ayuda con mi pedido",
   "messageCount": 3,
   "flushReason": "debounceWindow"
 }
 ```
 
-### Tipos de Procesamiento (Flush Reasons):
+### Motivos del Flush:
 
-- `debounceWindow` — ventana de silencio estándar alcanzada con éxito.
-- `firstMessage` — disparado por la lógica de Regla del 1er Mensaje.
-- `maxMessages` — límite de conteo de mensajes alcanzado.
-- `maxWaitTime` — tiempo máximo de retraso absoluto alcanzado.
-- `keyword` — se ha detectado una palabra clave de control.
-- `duplicate` — un texto duplicado en secuencia procesó la lista.
+- `debounceWindow` — Ventana convencional de silencio transcurrida.
+- `firstMessage` — Detonado según la lógica de `First Message Behavior`.
+- `maxMessages` — Se alcanzó el límite máximo de mensajes.
+- `maxWaitTime` — Se alcanzó el límite máximo de tiempo de espera.
+- `keyword` — Una palabra clave de `flush` fue detectada.
+- `duplicate` — Un mensaje se duplicó y provocó el `flush`.
 
 ---
 
-## 🧑‍💻 Ejemplo de Flujo (Flow)
+## 🧑‍💻 Ejemplo de `workflow`
 
 ```text
-Webhook → [Nodos de Enriquecimiento] → Message Debounce → Agente de IA / Switch Node
+Webhook → [Extract Context] → Message Debounce → AI Agent / Switch Node
 ```
 
-Este nodo agiliza enormemente tu flujo de trabajo, reemplazando la necesidad de crear soluciones complejas y largas (dependiendo de múltiples nodos Wait o bases de datos) para simular un agrupamiento manual. Las reglas de "Debounce" y el manejo exhaustivo del *Primer Mensaje* ya vienen integrados de serie.
+Este `node` simplifica su infraestructura eliminando la necesidad de aplicar arreglos manuales complejos para lograr el `debounce`, tales como implementaciones de Wait nodes, bases de datos externas o funciones de bucles de espera. Provee una lógica sólida y nativa que asiste en conservar sus `workflows` limpios y directamente reactivos.
 
 ---
 
-## 🤝 Mantenido por U.ai Automação
+## 🤝 Soporte a cargo de U.ai Automação
 
-Creado con extrema dedicación al ecosistema por el equipo de **[U.ai Automação](https://uaiautomacao.com)** — Creando soluciones de automatización robustas para dinámicas del mundo real.
+Elaborado por el equipo oficial en **[U.ai Automação](https://uaiautomacao.com)**.
 
 ## 📄 Licencia
 
 [MIT](LICENSE)
 
 [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
-
