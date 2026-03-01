@@ -1,0 +1,58 @@
+{
+	"name": "n8n-nodes-message-debounce",
+	"version": "0.1.19",
+	"description": "n8n community node that groups messages from the same session within a time window, waiting for silence before passing them along as a single consolidated output.",
+	"license": "MIT",
+	"homepage": "https://github.com/uaiautomacao/n8n-nodes-message-debounce",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"debounce",
+		"buffer",
+		"message",
+		"redis",
+		"chatbot",
+		"whatsapp",
+		"telegram"
+	],
+	"author": {
+		"name": "U.ai Automação",
+		"email": "contato@uaiautomacao.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/uaiautomacao/n8n-nodes-message-debounce.git"
+	},
+	"main": "index.js",
+	"scripts": {
+		"build": "n8n-node build",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release"
+	},
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": false,
+		"credentials": [
+			"dist/credentials/RedisApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/MessageDebounce/MessageDebounce.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "^0.21.0",
+		"typescript": "~5.6.0"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	},
+	"engines": {
+		"node": ">=18.10",
+		"npm": ">=8.11.0"
+	}
+}
