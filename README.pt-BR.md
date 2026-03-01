@@ -1,8 +1,5 @@
 # n8n-nodes-message-debounce
 
-<p align="center">
-  <img src="https://uaiautomacao.com/logo.png" alt="U.ai Automação" width="200"/>
-</p>
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png" alt="n8n community node" />
@@ -50,7 +47,7 @@ Enquanto o nó estiver aguardando pelo silêncio, **ele não emite nada para a f
 | Campo | Descrição |
 |---|---|
 | **Redis Credential** | Sua conexão com o Redis, configurada pela tela de Credenciais do n8n. |
-| **Session ID** | Identificador único para aquela conversa (ex: ID do Telegram, Número do Zap, etc). |
+| **Session ID** | Identificador único para aquela conversa (ex: ID do Telegram, Número do WhatsApp, etc). |
 | **Message** | O texto da mensagem que está chegando. |
 | **Debounce Window** | Qtd. de segundos para aguardar por silêncio antes de descarregar os itens (ex: `10`). |
 
@@ -99,7 +96,7 @@ Quando o agrupamento (debounce) dispara, o nó prossegue a automação retornand
 Webhook → [Nós de Enriquecimento] → Message Debounce → Agente de IA / Switch Node
 ```
 
-O nó encaixa em qualquer lugar do seu fluxo. Você pode processar áudios do WhatsApp no início, converter documentos para texto, etc — depois passar tudo para a perna de agrupamento. Ele cuida da fila.
+Este nó agiliza imensamente a sua vida. Ele evita que você precise criar gambiarras longas e complexas ou usar dezenas de nós auxiliares para tentar fazer um debounce manual. As regras de agrupamento silencioso e comportamento focado na *Primeira Mensagem* já vêm todas embutidas e prontas para rodar.
 
 ---
 

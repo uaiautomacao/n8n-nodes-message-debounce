@@ -5,13 +5,11 @@
 
 import { TTL_MULTIPLIERS } from './constants';
 
-/** Promise-based sleep using setInterval (avoids the restricted `setTimeout` global). */
+/** Promise-based sleep. */
 export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => {
-        const handle = setInterval(() => {
-            clearInterval(handle);
-            resolve();
-        }, ms);
+        // eslint-disable-next-line @n8n/community-nodes/no-restricted-globals
+        setTimeout(resolve, ms);
     });
 }
 

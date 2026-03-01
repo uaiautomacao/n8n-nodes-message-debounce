@@ -1,8 +1,5 @@
 # n8n-nodes-message-debounce
 
-<p align="center">
-  <img src="https://uaiautomacao.com/logo.png" alt="U.ai Automação" width="200"/>
-</p>
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png" alt="n8n community node" />
@@ -99,7 +96,7 @@ Cuando el agrupamiento (debounce) se dispara, el nodo continúa la automatizaci�
 Webhook → [Nodos de Enriquecimiento] → Message Debounce → Agente de IA / Switch Node
 ```
 
-El nodo encaja en cualquier lugar de tu flujo. Puedes procesar audios de WhatsApp al inicio, convertir documentos a texto, etc — y luego pasar todo a la etapa de agrupamiento. Él se encarga de la fila.
+Este nodo agiliza enormemente tu flujo de trabajo, reemplazando la necesidad de crear soluciones complejas y largas (dependiendo de múltiples nodos Wait o bases de datos) para simular un agrupamiento manual. Las reglas de "Debounce" y el manejo exhaustivo del *Primer Mensaje* ya vienen integrados de serie.
 
 ---
 
