@@ -120,6 +120,8 @@ This `node` simplifies your infrastructure by removing the need for complex manu
 
 Crafted by the team at **[U.ai Automação](https://uaiautomacao.com)**.
 
+If this `node` saved you time, consider giving it a ⭐ on [GitHub](https://github.com/uaiautomacao/n8n-nodes-message-debounce)
+
 ## 📄 License
 
 [MIT](LICENSE)
