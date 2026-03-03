@@ -120,6 +120,8 @@ Este `node` simplifica sua infraestrutura ao remover a necessidade de contornos 
 
 Desenvolvido pela equipe da **[U.ai Automação](https://uaiautomacao.com)**.
 
+Se este `node` economizou seu tempo, considere dar uma ⭐ no [GitHub](https://github.com/uaiautomacao/n8n-nodes-message-debounce)
+
 ## 📄 Licença
 
 [MIT](LICENSE)

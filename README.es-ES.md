@@ -120,6 +120,8 @@ Este `node` simplifica su infraestructura eliminando la necesidad de aplicar arr
 
 Elaborado por el equipo oficial en **[U.ai Automação](https://uaiautomacao.com)**.
 
+Si este `node` te ahorró tiempo, considera darle una ⭐ en [GitHub](https://github.com/uaiautomacao/n8n-nodes-message-debounce)
+
 ## 📄 Licencia
 
 [MIT](LICENSE)
