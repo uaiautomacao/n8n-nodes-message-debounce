@@ -11,10 +11,15 @@
   <a href="https://uaiautomacao.com"><img src="https://img.shields.io/badge/by-U.ai%20Automa%C3%A7%C3%A3o-blue?style=flat-square" alt="by U.ai Automação"/></a>
 </p>
 
+
 <p align="center">
   Leia isto em: 
   <a href="README.md"><img src="https://flagcdn.com/20x15/us.png" alt="English"> English</a> | 
   <a href="README.es-ES.md"><img src="https://flagcdn.com/20x15/es.png" alt="Español"> Español</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/uaiautomacao/n8n-nodes-message-debounce"><img src="https://img.shields.io/github/stars/uaiautomacao/n8n-nodes-message-debounce?style=social" alt="GitHub stars"/></a>
 </p>
 
 ---
