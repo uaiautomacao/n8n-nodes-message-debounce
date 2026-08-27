@@ -14,11 +14,12 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /** Returns the Redis key names for a given session ID. */
-export function makeKeys(sessionId: string): { msgKey: string; tsKey: string; sessionKey: string } {
+export function makeKeys(sessionId: string): { msgKey: string; tsKey: string; sessionKey: string; fgKey: string } {
     return {
         msgKey: `debounce:${sessionId}:msgs`,
         tsKey: `debounce:${sessionId}:startTime`,
         sessionKey: `debounce:${sessionId}:session`,
+        fgKey: `debounce:${sessionId}:fg`,
     };
 }
 

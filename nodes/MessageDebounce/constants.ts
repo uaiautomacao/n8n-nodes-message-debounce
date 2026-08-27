@@ -3,6 +3,7 @@
  *
  * KEYS[1] = messages list key  (debounce:{sessionId}:msgs)
  * KEYS[2] = startTime key      (debounce:{sessionId}:startTime)
+ * KEYS[3] = first-group key    (debounce:{sessionId}:fg)
  * ARGV[1] = beforeId           (UUID of the message pushed by this execution)
  *
  * Returns: array of raw JSON message entries if this execution wins the race,
@@ -14,6 +15,7 @@
 export const FLUSH_SCRIPT = `
 local key  = KEYS[1]
 local tkey = KEYS[2]
+local fgkey = KEYS[3]
 local bid  = ARGV[1]
 
 local last = redis.call('LINDEX', key, -1)
@@ -26,7 +28,41 @@ if entry.id ~= bid then return nil end
 local all = redis.call('LRANGE', key, 0, -1)
 redis.call('DEL', key)
 redis.call('DEL', tkey)
+if fgkey then redis.call('DEL', fgkey) end
 return all
+`;
+
+/**
+ * Lua script for atomic session/first-group initialization in Redis.
+ *
+ * KEYS[1] = session key      (debounce:{sessionId}:session)
+ * KEYS[2] = first-group key  (debounce:{sessionId}:fg)
+ *
+ * Returns: 2 if this is the first message of a brand-new session (session key
+ *            just created, first-group key just created alongside it),
+ *          1 if the session already existed but the first-group key is still
+ *            present (a later message within the same first interaction),
+ *          0 if the session already existed and the first-group key is gone
+ *            (the first interaction already flushed).
+ *
+ * Combining the session SET and the first-group SET/EXISTS check into a single
+ * atomic command prevents a race where a concurrent message could observe the
+ * session key as already set but the first-group key as not-yet-written.
+ */
+export const SESSION_INIT_SCRIPT = `
+local sessionKey = KEYS[1]
+local fgKey = KEYS[2]
+
+local isNew = redis.call('SET', sessionKey, '1', 'NX')
+if isNew then
+    redis.call('SET', fgKey, '1', 'NX')
+    return 2
+end
+
+if redis.call('EXISTS', fgKey) == 1 then
+    return 1
+end
+return 0
 `;
 
 /** Session TTL multipliers: converts a user-facing unit to seconds. */

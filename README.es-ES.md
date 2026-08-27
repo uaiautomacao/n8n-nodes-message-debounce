@@ -76,7 +76,7 @@ Mientras el `node` se encuentra en estado de espera, **no emite nada** — el `w
 
 | Ajuste | Descripción | Por defecto |
 |---|---|---|
-| **`First Message Behavior`** | Comportamiento especial para el primer mensaje de una nueva sesión: un `flush` Inmediato o una Ventana Personalizada. | `None` |
+| **`First Message Behavior`** | Comportamiento especial para la primera interacción de una nueva sesión: un `flush` Inmediato en el primer mensaje, o una Ventana Personalizada aplicada a todos los mensajes hasta que esa primera interacción haga `flush`. | `None` |
 | **Session TTL** | Tiempo de inactividad antes de que la sesión se borre de Redis. *(Disponible si se configura un `First Message Behavior`)*. | `24 Hours` |
 | **Max Messages** | Fuerza el `flush` inmediato después de N mensajes, sin importar el temporizador de silencio. | `0` (Desactivado) |
 | **Max Wait Time** | Límite de tiempo máximo en segundos para forzar un `flush`, aunque sigan llegando mensajes continuamente. | `0` (Desactivado) |

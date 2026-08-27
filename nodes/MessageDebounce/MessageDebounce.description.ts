@@ -93,7 +93,8 @@ export const description: INodeTypeDescription = {
                 {
                     name: 'Use Custom Window',
                     value: 'customWindow',
-                    description: 'Apply a shorter or longer silence window for the first message only',
+                    description:
+                        'Apply a shorter or longer silence window to every message in the first interaction, until it flushes',
                 },
             ],
         },
@@ -104,7 +105,8 @@ export const description: INodeTypeDescription = {
             typeOptions: { minValue: 1 },
             default: 3,
             placeholder: 'e.g. 3',
-            description: 'Silence window in seconds applied to the first message of a new session',
+            description:
+                'Silence window in seconds applied to every message in the first interaction of a new session, until it flushes',
             displayOptions: {
                 show: {
                     firstMessageBehavior: ['customWindow'],

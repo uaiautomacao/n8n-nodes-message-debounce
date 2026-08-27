@@ -10,7 +10,7 @@
 import { randomUUID } from 'crypto';
 import type { IDataObject, INodeExecutionData } from 'n8n-workflow';
 
-import { FLUSH_SCRIPT } from './constants';
+import { FLUSH_SCRIPT, SESSION_INIT_SCRIPT } from './constants';
 import { sleep, makeKeys, wrapRedisError, toTtlSeconds } from './helpers';
 import type { FlushReason, MessageEntry, DebounceOutput, ResolvedOptions } from './types';
 import type { RedisClient } from './utils/RedisClient';
@@ -23,16 +23,16 @@ export async function runDebounce(
     opts: ResolvedOptions,
     itemIndex: number,
 ): Promise<INodeExecutionData[][]> {
-    const { msgKey, tsKey, sessionKey } = makeKeys(sessionId);
+    const { msgKey, tsKey, sessionKey, fgKey } = makeKeys(sessionId);
 
-    /** Reads all buffered messages, deletes message/ts keys (keeps sessionKey), returns n8n output. */
+    /** Reads all buffered messages, deletes temporary keys (keeps sessionKey), returns n8n output. */
     const flush = async (reason: FlushReason): Promise<INodeExecutionData[][]> => {
         let entries: string[];
         try {
             entries = await redis.lrange(msgKey, 0, -1);
-            // Delete message list and start-time key, but NOT sessionKey.
+            // Delete message list, start-time, and first-group indicator.
             // sessionKey persists until TTL expires to track active sessions.
-            await redis.del(msgKey, tsKey);
+            await redis.del(msgKey, tsKey, fgKey);
         } catch (err) {
             throw wrapRedisError(err);
         }
@@ -52,32 +52,34 @@ export async function runDebounce(
     };
 
     // -------------------------------------------------------------------------
-    // Step 1 — Is this the first message in the session?
-    // We use a dedicated sessionKey instead of llen() so that flush() can clear
-    // the message list without resetting the "first message" guard.
+    // Step 1 — Session & First-Group Initialization
     // -------------------------------------------------------------------------
-    let sessionExists: string | null;
+    const ttlSec = toTtlSeconds(opts.sessionTtlValue, opts.sessionTtlUnit);
+
+    // Atomically initialize the session + first-group markers in a single Redis
+    // round-trip, so a concurrent burst of messages can't observe the session
+    // key as already set while the first-group key is still being written.
+    // 2 = brand-new session (also first-group), 1 = first-group still active,
+    // 0 = session existed and its first group already flushed.
+    let isFirstMessageOfSession = false;
+    let isFirstInteractionGroup = false;
     try {
-        sessionExists = await redis.get(sessionKey);
+        const initResult = await redis.eval(SESSION_INIT_SCRIPT, [sessionKey, fgKey], []);
+        isFirstMessageOfSession = Number(initResult) === 2;
+        isFirstInteractionGroup = Number(initResult) >= 1;
     } catch (err) {
         throw wrapRedisError(err);
     }
-    const isFirstMessage = sessionExists === null;
 
     // -------------------------------------------------------------------------
-    // Step 2 — First-message special behaviors
+    // Step 2 — First-message immediate behavior
     // -------------------------------------------------------------------------
-    if (isFirstMessage && opts.firstMsgBehavior === 'immediate') {
+    if (isFirstMessageOfSession && opts.firstMsgBehavior === 'immediate') {
         const entry: MessageEntry = { id: randomUUID(), content: message };
         try {
-            // Mark session as active BEFORE flushing so subsequent messages know
-            // the session already started.
-            await redis.set(sessionKey, '1');
-            const ttlSec = toTtlSeconds(opts.sessionTtlValue, opts.sessionTtlUnit);
+            // Apply TTL since we are flushing right away and finishing.
             if (ttlSec > 0) {
                 await redis.expire(sessionKey, ttlSec);
-            } else {
-                await redis.persist(sessionKey);
             }
             await redis.rpush(msgKey, JSON.stringify(entry));
         } catch (err) {
@@ -152,19 +154,22 @@ export async function runDebounce(
         throw wrapRedisError(err);
     }
 
-    // Mark session as active and apply TTL to all keys.
-    const ttlSec = toTtlSeconds(opts.sessionTtlValue, opts.sessionTtlUnit);
+    // Apply/Renew TTL to all active keys.
     try {
-        // sessionKey: use SET NX so we don't overwrite an existing session marker
-        await redis.set(sessionKey, '1', { nx: true });
         if (ttlSec > 0) {
             await redis.expire(msgKey, ttlSec);
             await redis.expire(tsKey, ttlSec);
             await redis.expire(sessionKey, ttlSec);
+            if (isFirstInteractionGroup) {
+                await redis.expire(fgKey, ttlSec);
+            }
         } else {
             await redis.persist(msgKey);
             await redis.persist(tsKey);
             await redis.persist(sessionKey);
+            if (isFirstInteractionGroup) {
+                await redis.persist(fgKey);
+            }
         }
     } catch (err) {
         throw wrapRedisError(err);
@@ -181,7 +186,7 @@ export async function runDebounce(
     // Step 7 — Sleep (debounce window, racing against maxWait if configured)
     // -------------------------------------------------------------------------
     const windowMs =
-        isFirstMessage && opts.firstMsgBehavior === 'customWindow'
+        isFirstInteractionGroup && opts.firstMsgBehavior === 'customWindow'
             ? opts.firstMsgCustomWindow * 1000
             : debounceWindowSec * 1000;
 
@@ -220,7 +225,7 @@ export async function runDebounce(
     // -------------------------------------------------------------------------
     let luaResult: unknown;
     try {
-        luaResult = await redis.eval(FLUSH_SCRIPT, [msgKey, tsKey], [entry.id]);
+        luaResult = await redis.eval(FLUSH_SCRIPT, [msgKey, tsKey, fgKey], [entry.id]);
     } catch (err) {
         throw wrapRedisError(err);
     }
