@@ -76,7 +76,7 @@ When the `node` is still waiting, **it emits nothing** — the `workflow` simply
 
 | Setting | Description | Default |
 |---|---|---|
-| **`First Message Behavior`** | Special behavior for the first message of a new session: Immediate `flush` or a Custom Window. | `None` |
+| **`First Message Behavior`** | Special behavior for the first interaction of a new session: an immediate `flush` on the very first message, or a Custom Window applied to every message until that first interaction flushes. | `None` |
 | **Session TTL** | Inactivity time before a session is erased from Redis. *(Available if a `First Message Behavior` is set)*. | `24 Hours` |
 | **Max Messages** | Force an immediate `flush` after N messages, regardless of the silence timer. | `0` (Disabled) |
 | **Max Wait Time** | Maximum total seconds before forcing a `flush`, even if messages keep arriving without silence. | `0` (Disabled) |

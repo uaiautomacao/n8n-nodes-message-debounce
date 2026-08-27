@@ -76,7 +76,7 @@ Quando o `node` ainda está aguardando, **ele não emite nada** — o `workflow`
 
 | Configuração | Descrição | Padrão |
 |---|---|---|
-| **`First Message Behavior`** | Comportamento especial para a primeira mensagem de uma nova sessão: `flush` Imediato ou uma Janela Personalizada. | `None` |
+| **`First Message Behavior`** | Comportamento especial para a primeira interação de uma nova sessão: `flush` Imediato na primeira mensagem, ou uma Janela Personalizada aplicada a todas as mensagens até essa primeira interação dar `flush`. | `None` |
 | **Session TTL** | Tempo de inatividade antes que uma sessão seja apagada do Redis. *(Disponível se um `First Message Behavior` estiver configurado)*. | `24 Hours` |
 | **Max Messages** | Força um `flush` imediato após N mensagens, independentemente do cronômetro de silêncio. | `0` (Desativado) |
 | **Max Wait Time** | Tempo máximo total em segundos antes de forçar um `flush`, mesmo se continuarem chegando mensagens sem silêncio. | `0` (Desativado) |
